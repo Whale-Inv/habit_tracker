@@ -2,12 +2,32 @@
 
 Приложение для отслеживания привычек с напоминаниями в Telegram.
 
-## Запуск проекта через Docker Compose
+## Демо
 
-### Предварительные требования
+Приложение развернуто и доступно по адресу:  
+**http://103.76.53.62**
 
-- Установленный Docker Desktop
-- Установленный Docker Compose
+- Админка: http://103.76.53.62/admin
+- API: http://103.76.53.62/habits/
+
+---
+
+## Содержание
+
+- [Локальный запуск](#локальный-запуск)
+- [Настройка удаленного сервера](#настройка-удаленного-сервера)
+- [CI/CD GitHub Actions](#cicd-github-actions)
+- [Команды для управления](#команды-для-управления)
+- [Проверка работоспособности](#проверка-работоспособности)
+
+---
+
+## Локальный запуск
+
+### Требования
+
+- Docker Desktop
+- Git
 
 ### 1. Клонирование репозитория
 
@@ -103,3 +123,97 @@ docker-compose logs celery-beat
 `docker-compose restart`
 ### Позволяет просматривать логи всех контейнеров
 `docker-compose logs`
+
+## Настройка удаленного сервера
+
+### 1. Подготовка сервера (Ubuntu 24.04)
+```commandline
+# Обновление системы
+sudo apt update && sudo apt upgrade -y
+
+# Установка Docker
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Настройка firewall
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw --force enable
+```
+
+### 2. Настройка SSH-ключей
+На локальной машине:
+```commandline
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/github_actions -N ""
+ssh-copy-id -i ~/.ssh/github_actions.pub test@103.76.53.62
+```
+### 3. Клонирование и запуск на сервере
+```commandline
+ssh test@103.76.53.62
+git clone -b develop https://github.com/Whale-Inv/habit-tracker.git habit-tracker
+cd habit-tracker
+cp .env.template .env
+nano .env  # заполните переменные
+docker compose up -d --build
+docker exec -it habit_tracker-web-1 python manage.py createsuperuser
+```
+## CI/CD GitHub Actions
+### Как это работает
+При каждом push в ветку `develop` автоматически запускается:
+```commandline
+push → develop
+    ↓
+1. Линтер (flake8) → проверка стиля кода
+    ↓
+2. Тесты (Django) → запуск всех тестов
+    ↓
+3. Сборка Docker образа → push в Docker Hub
+    ↓
+4. Деплой на сервер → обновление контейнеров
+```
+### Настройка GitHub Secrets
+В репозитории: **Settings** → **Secrets and variables** → **Actions**
+
+| Secret          | Описание                           |
+|-----------------|------------------------------------|
+| DOCKER_USERNAME | 	Имя пользователя Docker Hub       |
+| DOCKER_PASSWORD | 	Токен доступа Docker Hub          |
+| SERVER_HOST     | 	IP адрес сервера (103.76.53.62)   |
+| SERVER_USER	    | Имя пользователя на сервере (test) |
+| SSH_PRIVATE_KEY | 	Приватный SSH ключ                |
+
+### Файл workflow
+`.github/workflows/deploy.yml` содержит:
+* **Linter**: flake8 проверка кода
+* **Tests**: Django тесты (на SQLite для скорости)
+* **Build**: сборка Docker образа и пуш в Docker Hub
+* **Deploy**: SSH на сервер → `docker pull` → `docker compose up -d`
+
+### Команды для управления
+
+| Команда	                 | Действие                       |
+|--------------------------|--------------------------------|
+| docker compose ps	       | Список контейнеров и их статус |
+| docker compose logs	     | Логи всех контейнеров          |
+| docker compose logs web	 | Логи Django приложения         |
+| docker compose restart	  | Перезапуск всех сервисов       |
+| docker compose down	     | Остановка всех сервисов        |
+| docker compose up -d	    | Запуск в фоновом режиме        |
+
+### Проверка работоспособности
+```commandline
+# Откройте в браузере
+http://103.76.53.62/habits/
+http://103.76.53.62/admin/
+```
+
+## Автор
+### Nikita Dorozhko
+* **GitHub**: [@Whale-Inv](https://github.com/Whale-Inv)
+* **Docker Hub**: [exzently](https://hub.docker.com/u/exzently)
+
+## Лицензия
+Этот проект распространяется под лицензией MIT. Подробнее см. в файле [LICENSE](LICENSE).  
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
