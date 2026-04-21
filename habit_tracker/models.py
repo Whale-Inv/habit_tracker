@@ -6,7 +6,9 @@ from habit_tracker.validators import ExecutionDurationValidator, PeriodicityVali
 
 
 class Habit(models.Model):
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="пользователь")
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="пользователь"
+    )
     habit_place = models.CharField(max_length=255, verbose_name="место")
     habit_time = models.DateTimeField(verbose_name="время")
     habit_action = models.TextField(verbose_name="действие")
@@ -15,19 +17,19 @@ class Habit(models.Model):
         verbose_name="признак приятной привычки",
     )
     related_habit = models.ForeignKey(
-        'self',
+        "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         verbose_name="связанная приятная привычка",
-        limit_choices_to={'sign_of_pleasant_habit': True},
-        related_name='related_to',
+        limit_choices_to={"sign_of_pleasant_habit": True},
+        related_name="related_to",
     )
     periodicity = models.PositiveIntegerField(
         verbose_name="Периодичность (в днях)",
         help_text="Количество дней между выполнениями привычки. По умолчанию — 1 (ежедневно)",
         default=1,
-        validators=[PeriodicityValidator()]
+        validators=[PeriodicityValidator()],
     )
     reward = models.TextField(
         verbose_name="Вознаграждение",
@@ -36,8 +38,7 @@ class Habit(models.Model):
         null=True,
     )
     execution_duration = models.DurationField(
-        verbose_name="время на выполнение",
-        validators=[ExecutionDurationValidator()]
+        verbose_name="время на выполнение", validators=[ExecutionDurationValidator()]
     )
     is_public = models.BooleanField(verbose_name="признак публичности")
 
@@ -63,7 +64,6 @@ class Habit(models.Model):
     def save(self, *args, **kwargs):  # 👈 Добавить!
         self.full_clean()
         super().save(*args, **kwargs)
-
 
     def __str__(self):
         return f"{self.habit_action} в {self.habit_place}"

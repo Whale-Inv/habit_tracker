@@ -9,10 +9,10 @@ class HabitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Habit
         fields = "__all__"
-        read_only_fields = ('creator',)
+        read_only_fields = ("creator",)
 
     def validate(self, data):
-        if data.get('related_habit') and data.get('reward'):
+        if data.get("related_habit") and data.get("reward"):
             raise serializers.ValidationError(
                 "Нельзя одновременно указывать вознаграждение и связанную привычку"
             )

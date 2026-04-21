@@ -5,4 +5,8 @@ from users.models import User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("id", "username", "telegram_chat_id",)
+    list_display = (
+        "id",
+        "username",
+        "telegram_chat_id",
+    )
