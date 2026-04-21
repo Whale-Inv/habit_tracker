@@ -11,7 +11,15 @@ from users.views import UserCreateAPIView
 app_name = UsersConfig.name
 
 urlpatterns = [
-    path('login/', TokenObtainPairView.as_view(permission_classes=(AllowAny,)), name='token_obtain_pair'),
-    path('register/', UserCreateAPIView.as_view(), name='register'),
-    path('token/refresh/', TokenRefreshView.as_view(permission_classes=(AllowAny,)), name='token_refresh'),
+    path(
+        "login/",
+        TokenObtainPairView.as_view(permission_classes=(AllowAny,)),
+        name="token_obtain_pair",
+    ),
+    path("register/", UserCreateAPIView.as_view(), name="register"),
+    path(
+        "token/refresh/",
+        TokenRefreshView.as_view(permission_classes=(AllowAny,)),
+        name="token_refresh",
+    ),
 ]

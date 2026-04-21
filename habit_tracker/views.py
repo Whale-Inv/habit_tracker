@@ -34,15 +34,14 @@ class HabitRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Habit.objects.filter(
-            Q(creator=user) | Q(is_public=True)
-        ).distinct()
+        return Habit.objects.filter(Q(creator=user) | Q(is_public=True)).distinct()
 
 
 class HabitUpdateAPIView(generics.UpdateAPIView):
     """
-        Обновление привычки
+    Обновление привычки
     """
+
     serializer_class = HabitSerializer
 
     def get_queryset(self):
@@ -51,7 +50,7 @@ class HabitUpdateAPIView(generics.UpdateAPIView):
 
 class HabitDestroyAPIView(generics.DestroyAPIView):
     """
-        Удаление привычки
+    Удаление привычки
     """
 
     def get_queryset(self):

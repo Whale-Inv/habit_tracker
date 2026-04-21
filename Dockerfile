@@ -1,14 +1,27 @@
 FROM python:3.13-slim
 
+RUN apt-get update && apt-get install -y \
+    gcc libpq-dev curl netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install poetry
+
 WORKDIR /app
 
-# Установка зависимостей
-COPY pyproject.toml poetry.lock README.md ./
-RUN pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi
+COPY pyproject.toml poetry.lock ./
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --no-root
 
-# Копирование проекта
 COPY . .
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+ARG SECRET_KEY=dummy-key-for-build
+ENV SECRET_KEY=$SECRET_KEY
+
+RUN python manage.py collectstatic --noinput
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/entrypoint.sh"]
